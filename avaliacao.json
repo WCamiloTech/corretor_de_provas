@@ -1,0 +1,45 @@
+
+{
+  "id": "MMC2-2026-AV01",
+  "titulo": "Avaliação de Montagem e Manutenção",
+  "disciplina": "Montagem e Manutenção de Computadores",
+  "turma": "MMC2",
+  "data": "2026-10-08",
+  "aluno": {
+    "id": "ALUNO-001",
+    "nome": "Williames Camilo"
+  },
+  "questoes": [
+    {
+      "numero": 1,
+      "tipo": "objetiva",
+      "pontos": 4,
+      "alternativas": ["A", "B", "C", "D", "E"],
+      "gabarito": "B"
+    },
+    {
+      "numero": 2,
+      "tipo": "objetiva",
+      "pontos": 4,
+      "alternativas": ["A", "B", "C", "D", "E"],
+      "gabarito": "D"
+    },
+    {
+      "numero": 3,
+      "tipo": "discursiva",
+      "pontos": 10
+    },
+    {
+      "numero": 4,
+      "tipo": "objetiva",
+      "pontos": 4,
+      "alternativas": ["A", "B", "C", "D", "E"],
+      "gabarito": "A"
+    },
+    {
+      "numero": 5,
+      "tipo": "discursiva",
+      "pontos": 10
+    }
+  ]
+}
