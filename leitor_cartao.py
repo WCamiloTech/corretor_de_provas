@@ -234,25 +234,56 @@ def reconhecer_respostas(alinhada, dados):
                 2
             )
 
+        # marcadas = [
+        #     letra
+        #     for letra, taxa in preenchimentos.items()
+        #     if taxa >= LIMIAR_MARCACAO
+        # ]
+
+        # maior = max(preenchimentos.values())
+
+        # if len(marcadas) > 1:
+        #     status = "multipla"
+        #     resposta = None
+        # elif len(marcadas) == 1:
+        #     status = "marcada"
+        #     resposta = marcadas[0]
+        # elif maior <= LIMIAR_BRANCO:
+        #     status = "em_branco"
+        #     resposta = None
+        # else:
+        #     status = "incerta"
+        #     resposta = None
         marcadas = [
             letra
             for letra, taxa in preenchimentos.items()
             if taxa >= LIMIAR_MARCACAO
         ]
 
-        maior = max(preenchimentos.values())
+        suspeitas = [
+            letra
+            for letra, taxa in preenchimentos.items()
+            if LIMIAR_BRANCO < taxa < LIMIAR_MARCACAO
+        ]
 
         if len(marcadas) > 1:
             status = "multipla"
             resposta = None
+
+        elif len(marcadas) == 1 and suspeitas:
+            status = "incerta"
+            resposta = None
+
         elif len(marcadas) == 1:
             status = "marcada"
             resposta = marcadas[0]
-        elif maior <= LIMIAR_BRANCO:
-            status = "em_branco"
-            resposta = None
-        else:
+
+        elif suspeitas:
             status = "incerta"
+            resposta = None
+
+        else:
+            status = "em_branco"
             resposta = None
 
         resultados[numero] = {
@@ -320,7 +351,12 @@ def main():
             ensure_ascii=False,
             indent=2
         )
-
+    print("\nVALIDAÇÃO DO QR CODE")
+    print("-" * 35)
+    print(f"QR Code lido: {qr_lido}")
+    print(f"ID esperado: {dados['cartao_id']}")
+    print("Status: QR Code validado com sucesso!")
+    
     print("\nRESULTADO DA LEITURA")
     print("-" * 35)
 

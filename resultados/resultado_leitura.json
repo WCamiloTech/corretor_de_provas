@@ -4,35 +4,35 @@
   "aluno_id": "ALUNO-001",
   "respostas": {
     "1": {
-      "resposta": "B",
+      "resposta": "A",
       "status": "marcada",
       "preenchimentos": {
-        "A": 0.0,
-        "B": 0.998,
+        "A": 0.948,
+        "B": 0.0,
         "C": 0.0,
         "D": 0.0,
         "E": 0.0
       }
     },
     "2": {
-      "resposta": "D",
+      "resposta": "B",
       "status": "marcada",
       "preenchimentos": {
         "A": 0.0,
-        "B": 0.0,
+        "B": 0.604,
         "C": 0.0,
-        "D": 1.0,
+        "D": 0.0,
         "E": 0.0
       }
     },
     "4": {
-      "resposta": "A",
-      "status": "marcada",
+      "resposta": null,
+      "status": "incerta",
       "preenchimentos": {
-        "A": 1.0,
+        "A": 0.0,
         "B": 0.0,
-        "C": 0.0,
-        "D": 0.0,
+        "C": 0.251,
+        "D": 0.972,
         "E": 0.0
       }
     }
