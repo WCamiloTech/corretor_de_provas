@@ -1,0 +1,7 @@
+charset-normalizer==3.5.2
+colorama==0.4.6
+numpy==2.5.3
+opencv-python==5.0.0.93
+pillow==12.3.0
+qrcode==8.2
+reportlab==5.0.1
