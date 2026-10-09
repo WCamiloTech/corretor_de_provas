@@ -2,6 +2,7 @@ import json
 import shutil
 from datetime import datetime
 from pathlib import Path
+import copy
 
 BASE = Path(__file__).resolve().parent
 AVALIACAO = BASE / "avaliacao.json"
@@ -253,7 +254,7 @@ def main():
         raise ValueError("Aluno incompatível.")
 
     if SAIDA.exists():
-        resultado = carregar(SAIDA)
+        resultado = carregar(SAIDA)        
 
         if (
             resultado["avaliacao_id"] != avaliacao["id"]
@@ -274,6 +275,13 @@ def main():
         )
         print("Nova correção iniciada.")
 
+# Guarda o estado antes de qualquer modificação.
+    estado_anterior = (
+    copy.deepcopy(resultado)
+    if SAIDA.exists()
+    else None
+    )
+    
     definicoes = {
         q["numero"]: q
         for q in avaliacao["questoes"]
@@ -325,10 +333,31 @@ def main():
         atualizar_pontuacao(resultado)
         mostrar_resumo(resultado)
 
-    criar_backup()
-    salvar(resultado)
+    # criar_backup()
+    # salvar(resultado)
+    # if resultado != estado_anterior:
+    #     criar_backup()
+    #     salvar(resultado)
+    #     print("\nAlterações salvas com sucesso.")
+    # else:
+    #     print("\nNenhuma alteração realizada.")
+    #     print("O histórico foi preservado.")
 
-    print("\nCorreção salva em:", SAIDA)
+    # print("\nCorreção salva em:", SAIDA)
+    if estado_anterior is None:
+        salvar(resultado)
+        print("\nNova correção salva com sucesso.")
+
+    elif resultado != estado_anterior:
+        criar_backup()
+        salvar(resultado)
+        print("\nAlterações salvas com sucesso.")
+
+    else:
+        print("\nNenhuma alteração realizada.")
+        print("O histórico foi preservado.")
+
+    print("\nArquivo de correção:", SAIDA)
 
 
 if __name__ == "__main__":

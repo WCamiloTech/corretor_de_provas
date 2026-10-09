@@ -27,7 +27,7 @@
       "tipo": "discursiva",
       "status": "corrigida",
       "pontos_possiveis": 10.0,
-      "pontos_obtidos": 8.0
+      "pontos_obtidos": 10.0
     },
     {
       "numero": 4,
@@ -43,12 +43,12 @@
       "tipo": "discursiva",
       "status": "corrigida",
       "pontos_possiveis": 10.0,
-      "pontos_obtidos": 8.0
+      "pontos_obtidos": 10.0
     }
   ],
   "pontos_possiveis": 32.0,
-  "pontos_confirmados": 28.0,
-  "nota_final": 28.0,
+  "pontos_confirmados": 32.0,
+  "nota_final": 32.0,
   "status": "finalizada",
   "pendencias": []
 }
