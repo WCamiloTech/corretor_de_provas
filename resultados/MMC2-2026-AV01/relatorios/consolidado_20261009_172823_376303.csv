@@ -1,0 +1,4 @@
+﻿avaliacao_id;turma;aluno_id;aluno_nome;situacao;nota_original;pontuacao_maxima;nota_100;pontos_confirmados
+MMC2-2026-AV01;MMC2;ALUNO-001;Williames Camilo;finalizada;28,00;32,00;87,50;28,00
+MMC2-2026-AV01;MMC2;ALUNO-002;Aluno Teste 02;finalizada;19,00;32,00;59,38;19,00
+MMC2-2026-AV01;MMC2;ALUNO-003;Aluno Teste 03;finalizada;20,00;32,00;62,50;20,00
