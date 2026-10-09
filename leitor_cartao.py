@@ -5,28 +5,76 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+
+# ============================================================
+# CONFIGURAÇÕES
+# ============================================================
+
 BASE = Path(__file__).resolve().parent
-FOTO = BASE / "fotos" / "teste_04.jpg"
-MAPA = BASE / "cartoes" / "MMC2-2026-AV01_ALUNO-001.json"
-SAIDA = BASE / "resultados"
+
+PASTA_FOTOS = BASE / "fotos_teste_v06"
+PASTA_MAPAS = BASE / "cartoes_teste_v06"
+PASTA_RESULTADOS = BASE / "resultados"
+
+EXTENSOES = {".jpg", ".jpeg", ".png"}
 
 ESCALA = 3
 LIMIAR_MARCACAO = 0.35
 LIMIAR_BRANCO = 0.15
 
-SAIDA.mkdir(parents=True, exist_ok=True)
+
+# ============================================================
+# CARREGAMENTO DOS MAPAS
+# ============================================================
+
+def carregar_mapas():
+    if not PASTA_MAPAS.is_dir():
+        raise FileNotFoundError(
+            f"Pasta de mapas não encontrada: {PASTA_MAPAS}"
+        )
+
+    mapas = {}
+
+    for arquivo in sorted(PASTA_MAPAS.glob("*.json")):
+        with arquivo.open("r", encoding="utf-8") as f:
+            dados = json.load(f)
+
+        cartao_id = dados.get("cartao_id")
+
+        if not cartao_id:
+            raise ValueError(
+                f"Mapa sem cartao_id: {arquivo.name}"
+            )
+
+        if cartao_id in mapas:
+            raise ValueError(
+                f"UUID duplicado nos mapas: {cartao_id}"
+            )
+
+        mapas[cartao_id] = dados
+
+    if not mapas:
+        raise ValueError("Nenhum mapa JSON encontrado.")
+
+    return mapas
 
 
-def carregar_dados():
-    with MAPA.open("r", encoding="utf-8") as f:
-        return json.load(f)
+def localizar_mapa_referencia(mapas):
+    return next(iter(mapas.values()))
 
+
+# ============================================================
+# LOCALIZAÇÃO DOS MARCADORES
+# ============================================================
 
 def localizar_marcadores(imagem):
-    cinza = cv2.cvtColor(imagem, cv2.COLOR_BGR2GRAY)
+    cinza = cv2.cvtColor(
+        imagem, cv2.COLOR_BGR2GRAY
+    )
 
-    # Suavização e binarização adaptativa
-    cinza = cv2.GaussianBlur(cinza, (5, 5), 0)
+    cinza = cv2.GaussianBlur(
+        cinza, (5, 5), 0
+    )
 
     binaria = cv2.adaptiveThreshold(
         cinza,
@@ -49,12 +97,20 @@ def localizar_marcadores(imagem):
     for contorno in contornos:
         area = cv2.contourArea(contorno)
 
-        if area < 100 or area > largura * altura * 0.01:
+        if (
+            area < 100
+            or area > largura * altura * 0.01
+        ):
             continue
 
-        perimetro = cv2.arcLength(contorno, True)
+        perimetro = cv2.arcLength(
+            contorno, True
+        )
+
         poligono = cv2.approxPolyDP(
-            contorno, 0.04 * perimetro, True
+            contorno,
+            0.04 * perimetro,
+            True
         )
 
         if len(poligono) != 4:
@@ -83,7 +139,6 @@ def localizar_marcadores(imagem):
             "Não foram encontrados quatro marcadores."
         )
 
-    # Procura candidatos próximos aos quatro cantos.
     referencias = [
         np.array([0, 0]),
         np.array([largura, 0]),
@@ -105,11 +160,19 @@ def localizar_marcadores(imagem):
         ]
 
         _, indice = min(distancias)
-        selecionados.append(candidatos[indice])
+
+        selecionados.append(
+            candidatos[indice]
+        )
+
         usados.add(indice)
 
     return np.float32(selecionados)
 
+
+# ============================================================
+# ALINHAMENTO DO CARTÃO
+# ============================================================
 
 def alinhar_cartao(imagem, dados):
     pontos_origem = localizar_marcadores(imagem)
@@ -117,8 +180,13 @@ def alinhar_cartao(imagem, dados):
     largura_pdf = dados["pagina"]["largura"]
     altura_pdf = dados["pagina"]["altura"]
 
-    largura_px = round(largura_pdf * ESCALA)
-    altura_px = round(altura_pdf * ESCALA)
+    largura_px = round(
+        largura_pdf * ESCALA
+    )
+
+    altura_px = round(
+        altura_pdf * ESCALA
+    )
 
     marcadores = dados["marcadores"]
 
@@ -134,8 +202,13 @@ def alinhar_cartao(imagem, dados):
     for nome in ordem:
         m = marcadores[nome]
 
-        centro_x = m["x"] + m["largura"] / 2
-        centro_y = m["y"] + m["altura"] / 2
+        centro_x = (
+            m["x"] + m["largura"] / 2
+        )
+
+        centro_y = (
+            m["y"] + m["altura"] / 2
+        )
 
         destino.append([
             centro_x * ESCALA,
@@ -145,7 +218,8 @@ def alinhar_cartao(imagem, dados):
     pontos_destino = np.float32(destino)
 
     matriz = cv2.getPerspectiveTransform(
-        pontos_origem, pontos_destino
+        pontos_origem,
+        pontos_destino
     )
 
     alinhada = cv2.warpPerspective(
@@ -159,19 +233,30 @@ def alinhar_cartao(imagem, dados):
     return alinhada
 
 
+# ============================================================
+# ANÁLISE DE PREENCHIMENTO DAS BOLHAS
+# ============================================================
+
 def analisar_bolha(cinza, x, y, raio):
     altura, largura = cinza.shape
 
     cx = round(x * ESCALA)
     cy = round(y * ESCALA)
-    r = max(2, round(raio * ESCALA * 0.65))
+
+    r = max(
+        2,
+        round(raio * ESCALA * 0.65)
+    )
 
     if (
-        cx - r < 0 or cy - r < 0
+        cx - r < 0
+        or cy - r < 0
         or cx + r >= largura
         or cy + r >= altura
     ):
-        raise ValueError("Bolha fora da imagem.")
+        raise ValueError(
+            "Bolha fora da imagem."
+        )
 
     regiao = cinza[
         cy - r:cy + r + 1,
@@ -190,18 +275,26 @@ def analisar_bolha(cinza, x, y, raio):
         -r:r + 1
     ]
 
-    mascara = (xx * xx + yy * yy) <= r * r
+    mascara = (
+        xx * xx + yy * yy
+    ) <= r * r
 
-    proporcao = np.count_nonzero(
-        binaria[mascara]
-    ) / np.count_nonzero(mascara)
+    proporcao = (
+        np.count_nonzero(binaria[mascara])
+        / np.count_nonzero(mascara)
+    )
 
     return float(proporcao)
 
 
+# ============================================================
+# RECONHECIMENTO DAS RESPOSTAS
+# ============================================================
+
 def reconhecer_respostas(alinhada, dados):
     cinza = cv2.cvtColor(
-        alinhada, cv2.COLOR_BGR2GRAY
+        alinhada,
+        cv2.COLOR_BGR2GRAY
     )
 
     visualizacao = alinhada.copy()
@@ -218,12 +311,19 @@ def reconhecer_respostas(alinhada, dados):
                 posicao["raio"]
             )
 
-            preenchimentos[letra] = round(taxa, 3)
+            preenchimentos[letra] = round(
+                taxa, 3
+            )
 
-            cx = round(posicao["x"] * ESCALA)
+            cx = round(
+                posicao["x"] * ESCALA
+            )
+
             cy = round(
-                (dados["pagina"]["altura"] - posicao["y"])
-                * ESCALA
+                (
+                    dados["pagina"]["altura"]
+                    - posicao["y"]
+                ) * ESCALA
             )
 
             cv2.circle(
@@ -234,26 +334,6 @@ def reconhecer_respostas(alinhada, dados):
                 2
             )
 
-        # marcadas = [
-        #     letra
-        #     for letra, taxa in preenchimentos.items()
-        #     if taxa >= LIMIAR_MARCACAO
-        # ]
-
-        # maior = max(preenchimentos.values())
-
-        # if len(marcadas) > 1:
-        #     status = "multipla"
-        #     resposta = None
-        # elif len(marcadas) == 1:
-        #     status = "marcada"
-        #     resposta = marcadas[0]
-        # elif maior <= LIMIAR_BRANCO:
-        #     status = "em_branco"
-        #     resposta = None
-        # else:
-        #     status = "incerta"
-        #     resposta = None
         marcadas = [
             letra
             for letra, taxa in preenchimentos.items()
@@ -295,34 +375,90 @@ def reconhecer_respostas(alinhada, dados):
     return resultados, visualizacao
 
 
+# ============================================================
+# LEITURA DO QR CODE
+# ============================================================
+
 def ler_qrcode(imagem):
     detector = cv2.QRCodeDetector()
-    valor, _, _ = detector.detectAndDecode(imagem)
+
+    valor, _, _ = detector.detectAndDecode(
+        imagem
+    )
+
     return valor or None
 
 
-def main():
-    dados = carregar_dados()
+# ============================================================
+# PROCESSAMENTO INDIVIDUAL
+# ============================================================
 
-    imagem = cv2.imread(str(FOTO))
+def processar_foto(caminho_foto, mapas):
+    imagem = cv2.imread(
+        str(caminho_foto)
+    )
 
     if imagem is None:
-        raise FileNotFoundError(
-            f"Fotografia não encontrada: {FOTO}"
+        raise RuntimeError(
+            f"Não foi possível abrir: {caminho_foto.name}"
         )
 
-    alinhada = alinhar_cartao(imagem, dados)
+    # Primeiro alinhamento com o layout comum.
+    referencia = localizar_mapa_referencia(mapas)
+
+    alinhada = alinhar_cartao(
+        imagem,
+        referencia
+    )
 
     qr_lido = ler_qrcode(alinhada)
 
-    if qr_lido != dados["cartao_id"]:
+    if not qr_lido:
         raise RuntimeError(
-            "QR Code não corresponde ao cartão esperado "
-            "ou não pôde ser lido."
+            "QR Code não reconhecido."
         )
 
+    if qr_lido not in mapas:
+        raise RuntimeError(
+            f"QR Code não cadastrado: {qr_lido}"
+        )
+
+    dados = mapas[qr_lido]
+
+    # Identifica a pasta individual do aluno.
+    destino = (
+        PASTA_RESULTADOS
+        / dados["avaliacao_id"]
+        / dados["aluno_id"]
+    )
+
+    arquivo_resultado = (
+        destino / "resultado_leitura.json"
+    )
+
+    # Verificação antecipada contra sobrescrita.
+    if arquivo_resultado.exists():
+        raise FileExistsError(
+            "Já existe uma leitura para "
+            f"{dados['aluno_id']}."
+        )
+
+    # Alinha novamente com o mapa do aluno.
+    alinhada = alinhar_cartao(
+        imagem,
+        dados
+    )
+
+    # Validação definitiva do QR Code.
+    if ler_qrcode(alinhada) != dados["cartao_id"]:
+        raise RuntimeError(
+            "Falha na validação do QR Code."
+        )
+
+    # Reconhecimento óptico das respostas.
     respostas, visualizacao = reconhecer_respostas(
-        alinhada, dados
+        alinhada,
+        dados
     )
 
     resultado = {
@@ -332,18 +468,49 @@ def main():
         "respostas": respostas
     }
 
-    cv2.imwrite(
-        str(SAIDA / "cartao_alinhado.jpg"),
+    # Cria a pasta individual somente após a leitura.
+    destino.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    caminho_alinhado = (
+        destino / "cartao_alinhado.jpg"
+    )
+
+    caminho_analisado = (
+        destino / "cartao_analisado.jpg"
+    )
+
+    # Evita substituir também as imagens anteriores.
+    if (
+        caminho_alinhado.exists()
+        or caminho_analisado.exists()
+    ):
+        raise FileExistsError(
+            "Já existem imagens de leitura para "
+            f"{dados['aluno_id']}. "
+            "Verifique os arquivos antes de continuar."
+        )
+
+    ok_alinhada = cv2.imwrite(
+        str(caminho_alinhado),
         alinhada
     )
 
-    cv2.imwrite(
-        str(SAIDA / "cartao_analisado.jpg"),
+    ok_analisada = cv2.imwrite(
+        str(caminho_analisado),
         visualizacao
     )
 
-    with (SAIDA / "resultado_leitura.json").open(
-        "w", encoding="utf-8"
+    if not ok_alinhada or not ok_analisada:
+        raise RuntimeError(
+            "Falha ao salvar imagens da leitura."
+        )
+
+    # O modo 'x' impede sobrescrever o JSON existente.
+    with arquivo_resultado.open(
+        "x", encoding="utf-8"
     ) as f:
         json.dump(
             resultado,
@@ -351,14 +518,18 @@ def main():
             ensure_ascii=False,
             indent=2
         )
+
     print("\nVALIDAÇÃO DO QR CODE")
     print("-" * 35)
     print(f"QR Code lido: {qr_lido}")
     print(f"ID esperado: {dados['cartao_id']}")
     print("Status: QR Code validado com sucesso!")
-    
+
     print("\nRESULTADO DA LEITURA")
     print("-" * 35)
+
+    print(f"Aluno: {dados['aluno_nome']}")
+    print(f"ID: {dados['aluno_id']}")
 
     for numero, item in respostas.items():
         print(
@@ -367,7 +538,68 @@ def main():
             f"({item['status']})"
         )
 
-    print("\nArquivos salvos em:", SAIDA)
+    print("\nArquivos salvos em:", destino)
+
+
+# ============================================================
+# PROCESSAMENTO EM LOTE
+# ============================================================
+
+def main():
+    mapas = carregar_mapas()
+
+    if not PASTA_FOTOS.is_dir():
+        raise FileNotFoundError(
+            f"Pasta de fotos não encontrada: {PASTA_FOTOS}"
+        )
+
+    fotos = sorted(
+        arquivo
+        for arquivo in PASTA_FOTOS.iterdir()
+        if (
+            arquivo.is_file()
+            and arquivo.suffix.lower() in EXTENSOES
+        )
+    )
+
+    if not fotos:
+        print("Nenhuma fotografia encontrada.")
+        return
+
+    print("\nLEITURA DE CARTÕES EM LOTE")
+    print("-" * 45)
+    print("Mapas disponíveis:", len(mapas))
+    print("Fotografias encontradas:", len(fotos))
+
+    sucessos = 0
+    falhas = 0
+
+    for indice, foto in enumerate(
+        fotos, start=1
+    ):
+        print(
+            f"\n[{indice}/{len(fotos)}] "
+            f"Processando: {foto.name}"
+        )
+
+        try:
+            processar_foto(foto, mapas)
+            sucessos += 1
+
+        except (
+            FileExistsError,
+            RuntimeError,
+            ValueError,
+            KeyError,
+            cv2.error
+        ) as erro:
+            falhas += 1
+            print("Não processado:", erro)
+
+    print("\nRESUMO")
+    print("-" * 45)
+    print("Leituras concluídas:", sucessos)
+    print("Arquivos não processados:", falhas)
 
 
 if __name__ == "__main__":
