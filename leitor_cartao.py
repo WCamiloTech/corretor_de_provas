@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 BASE = Path(__file__).resolve().parent
-FOTO = BASE / "fotos" / "teste_01.jpg"
+FOTO = BASE / "fotos" / "teste_04.jpg"
 MAPA = BASE / "cartoes" / "MMC2-2026-AV01_ALUNO-001.json"
 SAIDA = BASE / "resultados"
 
