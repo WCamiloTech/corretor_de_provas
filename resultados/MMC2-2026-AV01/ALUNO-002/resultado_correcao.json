@@ -1,0 +1,54 @@
+{
+  "avaliacao_id": "MMC2-2026-AV01",
+  "cartao_id": "df49908f-6b81-5d37-b520-e341f7829a43",
+  "aluno_id": "ALUNO-002",
+  "aluno_nome": "Aluno Teste 02",
+  "questoes": [
+    {
+      "numero": 1,
+      "tipo": "objetiva",
+      "pontos_possiveis": 4.0,
+      "pontos_obtidos": 0.0,
+      "resposta": "A",
+      "gabarito": "B",
+      "status": "marcada"
+    },
+    {
+      "numero": 2,
+      "tipo": "objetiva",
+      "pontos_possiveis": 4.0,
+      "pontos_obtidos": 0.0,
+      "resposta": "B",
+      "gabarito": "D",
+      "status": "marcada"
+    },
+    {
+      "numero": 3,
+      "tipo": "discursiva",
+      "pontos_possiveis": 10.0,
+      "pontos_obtidos": 9.0,
+      "status": "corrigida"
+    },
+    {
+      "numero": 4,
+      "tipo": "objetiva",
+      "pontos_possiveis": 4.0,
+      "pontos_obtidos": 4.0,
+      "resposta": "A",
+      "gabarito": "A",
+      "status": "marcada"
+    },
+    {
+      "numero": 5,
+      "tipo": "discursiva",
+      "pontos_possiveis": 10.0,
+      "pontos_obtidos": 6.0,
+      "status": "corrigida"
+    }
+  ],
+  "pontos_possiveis": 32.0,
+  "pontos_confirmados": 19.0,
+  "nota_final": 19.0,
+  "status": "finalizada",
+  "pendencias": []
+}
