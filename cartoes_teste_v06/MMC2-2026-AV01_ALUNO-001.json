@@ -1,0 +1,133 @@
+{
+  "versao_layout": "0.3",
+  "cartao_id": "878eb527-90e9-53a9-875b-9d701c131b3e",
+  "avaliacao_id": "MMC2-2026-AV01",
+  "aluno_id": "ALUNO-001",
+  "aluno_nome": "Williames Camilo",
+  "turma": "MMC2",
+  "pagina": {
+    "largura": 595.28,
+    "altura": 841.89,
+    "unidade": "pontos_pdf",
+    "origem": "inferior_esquerda"
+  },
+  "marcadores": {
+    "inferior_esquerdo": {
+      "x": 25,
+      "y": 25,
+      "largura": 18,
+      "altura": 18
+    },
+    "inferior_direito": {
+      "x": 552.28,
+      "y": 25,
+      "largura": 18,
+      "altura": 18
+    },
+    "superior_esquerdo": {
+      "x": 25,
+      "y": 798.89,
+      "largura": 18,
+      "altura": 18
+    },
+    "superior_direito": {
+      "x": 552.28,
+      "y": 798.89,
+      "largura": 18,
+      "altura": 18
+    }
+  },
+  "bolhas": {
+    "1": {
+      "A": {
+        "x": 98,
+        "y": 596.89,
+        "raio": 7
+      },
+      "B": {
+        "x": 133,
+        "y": 596.89,
+        "raio": 7
+      },
+      "C": {
+        "x": 168,
+        "y": 596.89,
+        "raio": 7
+      },
+      "D": {
+        "x": 203,
+        "y": 596.89,
+        "raio": 7
+      },
+      "E": {
+        "x": 238,
+        "y": 596.89,
+        "raio": 7
+      }
+    },
+    "2": {
+      "A": {
+        "x": 98,
+        "y": 571.89,
+        "raio": 7
+      },
+      "B": {
+        "x": 133,
+        "y": 571.89,
+        "raio": 7
+      },
+      "C": {
+        "x": 168,
+        "y": 571.89,
+        "raio": 7
+      },
+      "D": {
+        "x": 203,
+        "y": 571.89,
+        "raio": 7
+      },
+      "E": {
+        "x": 238,
+        "y": 571.89,
+        "raio": 7
+      }
+    },
+    "4": {
+      "A": {
+        "x": 98,
+        "y": 546.89,
+        "raio": 7
+      },
+      "B": {
+        "x": 133,
+        "y": 546.89,
+        "raio": 7
+      },
+      "C": {
+        "x": 168,
+        "y": 546.89,
+        "raio": 7
+      },
+      "D": {
+        "x": 203,
+        "y": 546.89,
+        "raio": 7
+      },
+      "E": {
+        "x": 238,
+        "y": 546.89,
+        "raio": 7
+      }
+    }
+  },
+  "questoes_discursivas": [
+    {
+      "numero": 3,
+      "pontos": 10
+    },
+    {
+      "numero": 5,
+      "pontos": 10
+    }
+  ]
+}

@@ -19,7 +19,9 @@ from layout_cartao import (
 
 BASE = Path(__file__).resolve().parent
 ARQUIVO_JSON = BASE / "avaliacao.json"
-PASTA_SAIDA = BASE / "cartoes"
+ARQUIVO_ALUNOS = BASE / "alunos.json"
+# PASTA_SAIDA = BASE / "cartoes"
+PASTA_SAIDA = BASE / "cartoes_teste_v06"
 
 VERSAO_LAYOUT = "0.3"
 
@@ -32,7 +34,55 @@ def carregar_avaliacao():
 
     with ARQUIVO_JSON.open("r", encoding="utf-8") as f:
         return json.load(f)
+def carregar_alunos():
+    if not ARQUIVO_ALUNOS.is_file():
+        raise FileNotFoundError(
+            f"Cadastro não encontrado: {ARQUIVO_ALUNOS}"
+        )
 
+    with ARQUIVO_ALUNOS.open(
+        "r", encoding="utf-8"
+    ) as arquivo:
+        cadastro = json.load(arquivo)
+
+    if not isinstance(cadastro, dict):
+        raise ValueError("Cadastro de alunos inválido.")
+
+    alunos = cadastro.get("alunos")
+
+    if not isinstance(alunos, list) or not alunos:
+        raise ValueError("Nenhum aluno cadastrado.")
+
+    ids = set()
+
+    for aluno in alunos:
+        if not isinstance(aluno, dict):
+            raise ValueError("Registro de aluno inválido.")
+
+        aluno_id = aluno.get("id")
+        nome = aluno.get("nome")
+
+        if (
+            not isinstance(aluno_id, str)
+            or not re.fullmatch(r"[A-Za-z0-9_-]+", aluno_id)
+        ):
+            raise ValueError(
+                f"ID de aluno inválido: {aluno_id}"
+            )
+
+        if not isinstance(nome, str) or not nome.strip():
+            raise ValueError(
+                f"Nome ausente para {aluno_id}"
+            )
+
+        if aluno_id in ids:
+            raise ValueError(
+                f"ID duplicado: {aluno_id}"
+            )
+
+        ids.add(aluno_id)
+
+    return cadastro
 
 def validar_avaliacao(prova):
     campos = [
@@ -286,8 +336,10 @@ def desenhar_rodape(pdf, objetivas, discursivas):
     )
 
 
-def gerar_cartao():
-    prova = carregar_avaliacao()
+def gerar_cartao(prova, aluno):
+    prova = dict(prova)
+    prova["aluno"] = dict(aluno)
+
     objetivas, discursivas = validar_avaliacao(prova)
 
     PASTA_SAIDA.mkdir(parents=True, exist_ok=True)
@@ -375,6 +427,60 @@ def gerar_cartao():
     print(f"Discursivas: {len(discursivas)}")
     print(f"Pontuação total: {total:g}")
 
+def gerar_cartoes_turma():
+    prova = carregar_avaliacao()
+    cadastro = carregar_alunos()
+
+    if cadastro.get("turma") != prova.get("turma"):
+        raise ValueError(
+            "A turma do cadastro não corresponde "
+            "à turma da avaliação."
+        )
+
+    # Valida a avaliação antes de iniciar o lote.
+    # O aluno de referência será substituído em cada cartão.
+    prova_validacao = dict(prova)
+    prova_validacao["aluno"] = cadastro["alunos"][0]
+    validar_avaliacao(prova_validacao)
+
+    print("\nGERAÇÃO DE CARTÕES EM LOTE")
+    print("-" * 45)
+    print("Avaliação:", prova["id"])
+    print("Turma:", prova["turma"])
+    print("Quantidade de alunos:", len(cadastro["alunos"]))
+
+    # Evita substituir arquivos existentes silenciosamente.
+    for aluno in cadastro["alunos"]:
+        nome = (
+            f'{nome_seguro(prova["id"])}_'
+            f'{nome_seguro(aluno["id"])}'
+        )
+
+        caminho_pdf = PASTA_SAIDA / f"{nome}.pdf"
+        caminho_mapa = PASTA_SAIDA / f"{nome}.json"
+
+        if caminho_pdf.exists() or caminho_mapa.exists():
+            raise FileExistsError(
+                "Já existem arquivos para "
+                f"{aluno['id']}. "
+                "Nenhum cartão será gerado neste lote. "
+                "Verifique os arquivos existentes."
+            )
+
+    for indice, aluno in enumerate(
+        cadastro["alunos"], start=1
+    ):
+        print(
+            f"\n[{indice}/{len(cadastro['alunos'])}] "
+            f"{aluno['nome']}"
+        )
+
+        gerar_cartao(prova, aluno)
+
+    print("\nTodos os cartões foram gerados.")
 
 if __name__ == "__main__":
-    gerar_cartao()
+    try:
+        gerar_cartoes_turma()
+    except (FileExistsError, ValueError, FileNotFoundError) as erro:
+        print(f"\nOperação interrompida: {erro}")
