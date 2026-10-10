@@ -22,6 +22,144 @@ ESCALA = 3
 LIMIAR_MARCACAO = 0.35
 LIMIAR_BRANCO = 0.15
 
+# ============================================================
+# V0.8.2.3 — VALIDAÇÃO DE PARTICIPANTES
+# ============================================================
+
+def validar_participante(dados_mapa):
+    avaliacao_id = dados_mapa.get("avaliacao_id")
+    aluno_id = dados_mapa.get("aluno_id")
+    aluno_nome = dados_mapa.get("aluno_nome")
+
+    if not all(
+        isinstance(valor, str) and valor.strip()
+        for valor in (
+            avaliacao_id,
+            aluno_id,
+            aluno_nome
+        )
+    ):
+        raise ValueError(
+            "Mapa com identificação incompleta."
+        )
+
+    if not all(
+        all(
+            caractere.isascii()
+            and (
+                caractere.isalnum()
+                or caractere in "_-"
+            )
+            for caractere in valor
+        )
+        for valor in (avaliacao_id, aluno_id)
+    ):
+        raise ValueError(
+            "ID da avaliação ou do aluno inválido."
+        )
+
+    caminho = (
+        PASTA_RESULTADOS
+        / avaliacao_id
+        / "participantes.json"
+    )
+
+    if not caminho.is_file():
+        raise FileNotFoundError(
+            "Registro de participantes não "
+            f"encontrado: {caminho}"
+        )
+
+    with caminho.open(
+        "r", encoding="utf-8-sig"
+    ) as arquivo:
+        registro = json.load(arquivo)
+
+    if not isinstance(registro, dict):
+        raise ValueError(
+            "Registro de participantes inválido."
+        )
+
+    if (
+        type(registro.get("schema_version")) is not int
+        or registro["schema_version"] != 1
+    ):
+        raise ValueError(
+            "Versão de participantes não suportada."
+        )
+
+    if registro.get("avaliacao_id") != avaliacao_id:
+        raise ValueError(
+            "ID da avaliação não corresponde "
+            "ao registro de participantes."
+        )
+
+    if registro.get("turma") != dados_mapa.get("turma"):
+        raise ValueError(
+            "Turma do mapa não corresponde "
+            "ao registro de participantes."
+        )
+
+    participantes = registro.get("participantes")
+
+    if (
+        not isinstance(participantes, list)
+        or not participantes
+    ):
+        raise ValueError(
+            "Lista de participantes inválida."
+        )
+
+    ids = set()
+    participante_encontrado = None
+
+    for participante in participantes:
+        if not isinstance(participante, dict):
+            raise ValueError(
+                "Participante com estrutura inválida."
+            )
+
+        identificador = participante.get("aluno_id")
+        nome = participante.get("nome_na_avaliacao")
+
+        if (
+            not isinstance(identificador, str)
+            or not identificador.strip()
+            or not isinstance(nome, str)
+            or not nome.strip()
+        ):
+            raise ValueError(
+                "Participante com dados incompletos."
+            )
+
+        if identificador in ids:
+            raise ValueError(
+                "IDs duplicados no registro "
+                "de participantes."
+            )
+
+        ids.add(identificador)
+
+        if identificador == aluno_id:
+            participante_encontrado = participante
+
+    if participante_encontrado is None:
+        raise ValueError(
+            f"O aluno {aluno_id} não participa "
+            f"da avaliação {avaliacao_id}."
+        )
+
+    if (
+        participante_encontrado["nome_na_avaliacao"]
+        != aluno_nome
+    ):
+        raise ValueError(
+            f"Nome do aluno {aluno_id} no mapa "
+            "não corresponde ao registro histórico."
+        )
+
+    return participante_encontrado
+
 
 # ============================================================
 # CARREGAMENTO DOS MAPAS
@@ -424,6 +562,10 @@ def processar_foto(caminho_foto, mapas):
         )
 
     dados = mapas[qr_lido]
+    
+    # Confirma a participação antes de processar
+    # ou salvar qualquer resultado.
+    validar_participante(dados)
 
     # Identifica a pasta individual do aluno.
     destino = (
@@ -585,14 +727,17 @@ def main():
         try:
             processar_foto(foto, mapas)
             sucessos += 1
-
         except (
-            FileExistsError,
-            RuntimeError,
-            ValueError,
-            KeyError,
-            cv2.error
-        ) as erro:
+                FileExistsError,
+                FileNotFoundError,
+                json.JSONDecodeError,
+                OSError,
+                RuntimeError,
+                ValueError,
+                KeyError,
+                cv2.error
+            ) as erro:
+            
             falhas += 1
             print("Não processado:", erro)
 

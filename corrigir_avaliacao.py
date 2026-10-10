@@ -91,6 +91,7 @@ def criar_backup(caminho):
     return destino
 
 
+
 def carregar_turma():
     avaliacao = carregar(AVALIACAO)
     cadastro = carregar(CADASTRO)
@@ -101,23 +102,26 @@ def carregar_turma():
             "da turma da avaliação."
         )
 
-    identificador(avaliacao["id"])
+    avaliacao_id = identificador(avaliacao["id"])
 
-    alunos = cadastro.get("alunos")
+    alunos_cadastrados = cadastro.get("alunos")
 
-    if not isinstance(alunos, list) or not alunos:
+    if (
+        not isinstance(alunos_cadastrados, list)
+        or not alunos_cadastrados
+    ):
         raise ValueError(
             "O cadastro não possui alunos."
         )
 
-    ids = set()
+    cadastro_por_id = {}
 
-    for aluno in alunos:
+    for aluno in alunos_cadastrados:
         aluno_id = identificador(aluno["id"])
 
-        if aluno_id in ids:
+        if aluno_id in cadastro_por_id:
             raise ValueError(
-                f"Aluno duplicado: {aluno_id}"
+                f"Aluno duplicado no cadastro: {aluno_id}"
             )
 
         if not str(aluno.get("nome", "")).strip():
@@ -125,10 +129,102 @@ def carregar_turma():
                 f"Nome ausente: {aluno_id}"
             )
 
+        cadastro_por_id[aluno_id] = aluno
+
+    caminho_participantes = (
+        PASTA_RESULTADOS
+        / avaliacao_id
+        / "participantes.json"
+    )
+
+    if not caminho_participantes.is_file():
+        raise FileNotFoundError(
+            "Registro de participantes não encontrado: "
+            f"{caminho_participantes}"
+        )
+
+    registro = carregar(caminho_participantes)
+
+    if not isinstance(registro, dict):
+        raise ValueError(
+            "Registro de participantes inválido."
+        )
+
+    if (
+        type(registro.get("schema_version")) is not int
+        or registro["schema_version"] != 1
+    ):
+        raise ValueError(
+            "Versão do registro de participantes "
+            "não suportada."
+        )
+
+    if registro.get("avaliacao_id") != avaliacao_id:
+        raise ValueError(
+            "O registro pertence a outra avaliação."
+        )
+
+    if registro.get("turma") != avaliacao["turma"]:
+        raise ValueError(
+            "A turma do registro de participantes "
+            "não corresponde à avaliação."
+        )
+
+    participantes = registro.get("participantes")
+
+    if (
+        not isinstance(participantes, list)
+        or not participantes
+    ):
+        raise ValueError(
+            "A avaliação não possui uma lista "
+            "válida de participantes."
+        )
+
+    alunos = []
+    ids = set()
+
+    for participante in participantes:
+        if not isinstance(participante, dict):
+            raise ValueError(
+                "Registro individual de participante inválido."
+            )
+
+        aluno_id = identificador(
+            participante.get("aluno_id")
+        )
+
+        nome_historico = participante.get(
+            "nome_na_avaliacao"
+        )
+
+        if (
+            not isinstance(nome_historico, str)
+            or not nome_historico.strip()
+        ):
+            raise ValueError(
+                f"Nome histórico ausente: {aluno_id}"
+            )
+
+        if aluno_id in ids:
+            raise ValueError(
+                f"Participante duplicado: {aluno_id}"
+            )
+
+        if aluno_id not in cadastro_por_id:
+            raise ValueError(
+                f"Participante {aluno_id} não encontrado "
+                "no cadastro geral."
+            )
+
         ids.add(aluno_id)
 
-    return avaliacao, alunos
+        alunos.append({
+            "id": aluno_id,
+            "nome": nome_historico
+        })
 
+    return avaliacao, alunos
 
 # ============================================================
 # VALIDAÇÃO DA LEITURA
@@ -452,6 +548,34 @@ def mostrar_resumo(resultado):
 # ============================================================
 
 def corrigir_aluno(avaliacao, aluno):
+    
+    avaliacao_atual, participantes = carregar_turma()
+
+    if avaliacao_atual["id"] != avaliacao["id"]:
+        raise ValueError(
+            "Avaliação diferente da configuração atual."
+        )
+
+    participante = next(
+        (
+            p for p in participantes
+            if p["id"] == aluno.get("id")
+        ),
+        None
+    )
+
+    if participante is None:
+        raise ValueError(
+            f"O aluno {aluno.get('id')} não participa "
+            f"da avaliação {avaliacao['id']}."
+        )
+
+    if aluno.get("nome") != participante["nome"]:
+        raise ValueError(
+            "Nome do aluno não corresponde "
+            "ao registro histórico da avaliação."
+        )
+        
     pasta = pasta_aluno(
         avaliacao["id"],
         aluno["id"]

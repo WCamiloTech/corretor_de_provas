@@ -1,0 +1,40 @@
+{
+  "cartao_id": "878eb527-90e9-53a9-875b-9d701c131b3e",
+  "avaliacao_id": "MMC2-2026-AV01",
+  "aluno_id": "ALUNO-001",
+  "respostas": {
+    "1": {
+      "resposta": "B",
+      "status": "marcada",
+      "preenchimentos": {
+        "A": 0.0,
+        "B": 0.998,
+        "C": 0.0,
+        "D": 0.0,
+        "E": 0.0
+      }
+    },
+    "2": {
+      "resposta": "D",
+      "status": "marcada",
+      "preenchimentos": {
+        "A": 0.0,
+        "B": 0.0,
+        "C": 0.0,
+        "D": 1.0,
+        "E": 0.0
+      }
+    },
+    "4": {
+      "resposta": "A",
+      "status": "marcada",
+      "preenchimentos": {
+        "A": 1.0,
+        "B": 0.0,
+        "C": 0.0,
+        "D": 0.0,
+        "E": 0.0
+      }
+    }
+  }
+}
