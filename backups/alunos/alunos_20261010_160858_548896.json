@@ -1,0 +1,8 @@
+{
+  "turma": "MMC2",
+  "alunos": [
+    {"id": "ALUNO-001", "nome": "Williames Camilo"},
+    {"id": "ALUNO-002", "nome": "Aluno Teste 02"},
+    {"id": "ALUNO-003", "nome": "Aluno Teste 03"}
+  ]
+}

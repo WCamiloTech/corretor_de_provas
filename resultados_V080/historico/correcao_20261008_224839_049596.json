@@ -1,0 +1,54 @@
+{
+  "avaliacao_id": "MMC2-2026-AV01",
+  "cartao_id": "878eb527-90e9-53a9-875b-9d701c131b3e",
+  "aluno_id": "ALUNO-001",
+  "aluno_nome": "Williames Camilo",
+  "questoes": [
+    {
+      "numero": 1,
+      "tipo": "objetiva",
+      "resposta": "B",
+      "gabarito": "B",
+      "status": "revisada",
+      "pontos_possiveis": 4.0,
+      "pontos_obtidos": 4.0
+    },
+    {
+      "numero": 2,
+      "tipo": "objetiva",
+      "resposta": "D",
+      "gabarito": "D",
+      "status": "marcada",
+      "pontos_possiveis": 4.0,
+      "pontos_obtidos": 4.0
+    },
+    {
+      "numero": 3,
+      "tipo": "discursiva",
+      "status": "corrigida",
+      "pontos_possiveis": 10.0,
+      "pontos_obtidos": 10.0
+    },
+    {
+      "numero": 4,
+      "tipo": "objetiva",
+      "resposta": "A",
+      "gabarito": "A",
+      "status": "marcada",
+      "pontos_possiveis": 4.0,
+      "pontos_obtidos": 4.0
+    },
+    {
+      "numero": 5,
+      "tipo": "discursiva",
+      "status": "corrigida",
+      "pontos_possiveis": 10.0,
+      "pontos_obtidos": 8.0
+    }
+  ],
+  "pontos_possiveis": 32.0,
+  "pontos_confirmados": 30.0,
+  "nota_final": 30.0,
+  "status": "finalizada",
+  "pendencias": []
+}

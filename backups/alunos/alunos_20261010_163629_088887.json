@@ -16,7 +16,7 @@
     {
       "id": "ALUNO-004",
       "nome": "Aluno Teste Quatro",
-      "ativo": true
+      "ativo": false
     }
   ]
 }

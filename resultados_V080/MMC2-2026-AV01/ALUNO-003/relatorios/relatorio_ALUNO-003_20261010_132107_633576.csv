@@ -1,0 +1,6 @@
+﻿avaliacao_id;turma;aluno_id;aluno_nome;questao;tipo;resposta;situacao;pontos_obtidos;pontos_possiveis;nota_final;nota_100
+MMC2-2026-AV01;MMC2;ALUNO-003;Aluno Teste 03;1;objetiva;A;Sem pontuação;0,00;4,00;20,00;62,50
+MMC2-2026-AV01;MMC2;ALUNO-003;Aluno Teste 03;2;objetiva;A;Sem pontuação;0,00;4,00;20,00;62,50
+MMC2-2026-AV01;MMC2;ALUNO-003;Aluno Teste 03;3;discursiva;Correção manual;Corrigida;7,00;10,00;20,00;62,50
+MMC2-2026-AV01;MMC2;ALUNO-003;Aluno Teste 03;4;objetiva;A;Acerto;4,00;4,00;20,00;62,50
+MMC2-2026-AV01;MMC2;ALUNO-003;Aluno Teste 03;5;discursiva;Correção manual;Corrigida;9,00;10,00;20,00;62,50
