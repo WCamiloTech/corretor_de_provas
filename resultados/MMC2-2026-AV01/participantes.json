@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "avaliacao_id": "MMC2-2026-AV01",
+  "turma": "MMC2",
+  "criado_em": "2026-10-10T17:44:04",
+  "participantes": [
+    {
+      "aluno_id": "ALUNO-001",
+      "nome_na_avaliacao": "Williames Camilo"
+    },
+    {
+      "aluno_id": "ALUNO-002",
+      "nome_na_avaliacao": "Aluno Teste 02"
+    },
+    {
+      "aluno_id": "ALUNO-004",
+      "nome_na_avaliacao": "Aluno Teste Quatro"
+    }
+  ]
+}
