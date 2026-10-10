@@ -707,7 +707,7 @@ def main():
 
             aluno_id = input(
                 "\nInforme o ID do aluno: "
-            ).strip()
+            ).strip().upper()
 
             aluno = next(
                 (

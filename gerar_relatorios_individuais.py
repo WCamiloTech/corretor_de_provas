@@ -3,6 +3,7 @@ import csv
 import json
 import math
 import re
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
@@ -733,6 +734,127 @@ def gerar_csv(relatorio, destino):
 # SELEÇÃO E GERAÇÃO
 # ============================================================
 
+
+def normalizar_pesquisa(valor):
+    """
+    Remove diferenças de maiúsculas/minúsculas
+    e acentuação para facilitar a pesquisa.
+    """
+    valor = str(valor).strip().casefold()
+
+    valor = unicodedata.normalize(
+        "NFD", valor
+    )
+
+    return "".join(
+        caractere
+        for caractere in valor
+        if unicodedata.category(caractere) != "Mn"
+    )
+
+
+def selecionar_aluno(alunos_por_id):
+    """
+    Permite localizar um aluno por nome ou ID
+    e selecioná-lo por número.
+    """
+
+    alunos = sorted(
+        alunos_por_id.values(),
+        key=lambda aluno: normalizar_pesquisa(
+            aluno["nome"]
+        )
+    )
+
+    while True:
+        print("\nLOCALIZAR ALUNO")
+        print("-" * 65)
+        print("Digite parte do nome ou ID do aluno.")
+        print("Pressione Enter para listar todos.")
+        print("Digite 0 para cancelar.")
+
+        pesquisa = input(
+            "\nPesquisar aluno: "
+        ).strip()
+
+        if pesquisa == "0":
+            return None
+
+        termo = normalizar_pesquisa(pesquisa)
+
+        encontrados = [
+            aluno
+            for aluno in alunos
+            if (
+                termo in normalizar_pesquisa(
+                    aluno["nome"]
+                )
+                or termo in normalizar_pesquisa(
+                    aluno["id"]
+                )
+            )
+        ]
+
+        if not encontrados:
+            print(
+                "\nNenhum aluno encontrado. "
+                "Tente outra pesquisa."
+            )
+            continue
+
+        print("\nRESULTADOS ENCONTRADOS")
+        print("-" * 65)
+
+        print(
+            f"{'Nº':<5}"
+            f"{'ID':<16}"
+            f"{'NOME'}"
+        )
+
+        print("-" * 65)
+
+        for indice, aluno in enumerate(
+            encontrados, start=1
+        ):
+            print(
+                f"{indice:<5}"
+                f"{aluno['id']:<16}"
+                f"{aluno['nome']}"
+            )
+
+        while True:
+            escolha = input(
+                "\nSelecione o número do aluno "
+                "(0 para voltar): "
+            ).strip()
+
+            if escolha == "0":
+                break
+
+            if not escolha.isdigit():
+                print(
+                    "Digite um número válido."
+                )
+                continue
+
+            indice = int(escolha)
+
+            if not 1 <= indice <= len(encontrados):
+                print(
+                    "Número fora da lista."
+                )
+                continue
+
+            selecionado = encontrados[indice - 1]
+
+            print(
+                "\nAluno selecionado: "
+                f"{selecionado['nome']} "
+                f"({selecionado['id']})"
+            )
+
+            return selecionado
+
 def executar():
     avaliacao = carregar_json(ARQ_AVALIACAO)
     cadastro = carregar_json(ARQ_ALUNOS)
@@ -787,17 +909,15 @@ def executar():
         return
 
     if opcao == "1":
-        aluno_id = input(
-            "Informe o ID do aluno: "
-        ).strip().upper()
-
-        if aluno_id not in alunos_por_id:
-            print("Aluno não encontrado.")
+        aluno = selecionar_aluno(
+            alunos_por_id
+        )
+        
+        if aluno is None:
+            print("Seleção cancelada.")
             return
-
-        selecionados = [
-            alunos_por_id[aluno_id]
-        ]
+        
+        selecionados = [aluno]
 
     elif opcao == "2":
         selecionados = list(
